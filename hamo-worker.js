@@ -12,7 +12,7 @@ export default {
       if (!supabaseUrl || !publishableKey) return new Response(JSON.stringify({ message: "Cloudflare variables SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are not configured." }), { status: 500, headers: jsonHeaders });
       const endpoint = supabaseUrl + "/rest/v1/ads?select=id,title,description,category,price,city,photos,created_at&status=eq.approved&order=created_at.desc&limit=30";
       try {
-        const upstream = await fetch(endpoint, { method: "GET", headers: { "apikey": publishableKey, "Authorization": "Bearer " + publishableKey, "Accept": "application/json" } });
+        const upstream = await fetch(endpoint, { method: "GET", headers: { "apikey": publishableKey, "Accept": "application/json" } });
         return new Response(await upstream.text(), { status: upstream.status, headers: { "Content-Type": upstream.headers.get("Content-Type") || "application/json; charset=utf-8", "Cache-Control": "no-store" } });
       } catch (error) {
         return new Response(JSON.stringify({ message: "Worker could not reach Supabase.", detail: String(error && error.message || error) }), { status: 502, headers: jsonHeaders });
@@ -37,8 +37,6 @@ export default {
         if (url.pathname === "/api/auth/logout") {
           if (!auth || !/^Bearer\s+\S+/i.test(auth)) return new Response(JSON.stringify({ message: "Missing session token" }), { status: 401, headers: jsonHeaders });
           headers.Authorization = auth;
-        } else {
-          headers.Authorization = "Bearer " + publishableKey;
         }
         const upstream = await fetch(supabaseUrl + authPath, { method: "POST", headers, body: await request.text() });
         return new Response(await upstream.text(), { status: upstream.status, headers: { "Content-Type": upstream.headers.get("Content-Type") || "application/json; charset=utf-8", "Cache-Control": "no-store" } });
